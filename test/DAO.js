@@ -110,7 +110,7 @@ describe("DAO", () => {
         expect(proposal.recipient).to.equal(recipient.address)
       })
 
-      it("emits an event", async () => {
+      it("emits a propose event", async () => {
         await expect(transaction)
           .to.emit(dao, "Propose")
           .withArgs(1, ether(100), recipient.address, investor1.address)
@@ -132,6 +132,48 @@ describe("DAO", () => {
             .connect(user)
             .createProposal("Proposal 1", ether(100), recipient.address)
         ).to.be.reverted
+      })
+    })
+  })
+
+  describe("Voting", () => {
+    let transaction, result
+
+    beforeEach(async () => {
+      transaction = await dao
+        .connect(investor1)
+        .createProposal("Proposal 1", ether(100), recipient.address)
+      result = await transaction.wait()
+    })
+
+    describe("Successfully", () => {
+      beforeEach(async () => {
+        transaction = await dao.connect(investor1).vote(1)
+        result = await transaction.wait()
+      })
+
+      it("updates vote count", async () => {
+        const proposal = await dao.proposals(1)
+        expect(proposal.votes).to.equal(tokens(200000))
+      })
+
+      it("emits a vote event", async () => {
+        await expect(transaction)
+          .to.emit(dao, "Vote")
+          .withArgs(1, investor1.address)
+      })
+    })
+
+    describe("Fails", () => {
+      it("by rejecting a non-investor", async () => {
+        await expect(dao.connect(user).vote(1)).to.be.reverted
+      })
+
+      it("by rejecting double voting", async () => {
+        transaction = await dao.connect(investor1).vote(1)
+        await transaction.wait()
+
+        await expect(dao.connect(investor1).vote(1)).to.be.reverted
       })
     })
   })

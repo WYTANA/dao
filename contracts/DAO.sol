@@ -21,6 +21,7 @@ contract DAO {
     uint256 public proposalCount;
 
     mapping(uint256 => Proposal) public proposals;
+    mapping(address => mapping(uint256 => bool)) public votes;
 
     event Propose(
         uint256 id,
@@ -28,6 +29,8 @@ contract DAO {
         address recipient,
         address creator
     );
+
+    event Vote(uint256 id, address investor);
 
     constructor(Token _token, uint256 _quorum) {
         owner = msg.sender;
@@ -39,7 +42,7 @@ contract DAO {
     receive() external payable {}
 
     modifier onlyInvestor() {
-        require(Token(token).balanceOf(msg.sender) > 0, "Must hold a token!");
+        require(token.balanceOf(msg.sender) > 0, "Must hold a token!");
         _;
     }
 
@@ -63,5 +66,24 @@ contract DAO {
         );
 
         emit Propose(proposalCount, _amount, _recipient, msg.sender);
+    }
+
+    // Cast a vote if you hold a token
+    // Each vote is an affirmation while a non-vote is a negation
+    function vote(uint256 _id) external onlyInvestor {
+        // Fetch the proposal from mapping
+        Proposal storage proposal = proposals[_id];
+
+        // No double votes!
+        require(!votes[msg.sender][_id], "Already voted!");
+
+        // Update votes with token balances
+        proposal.votes += token.balanceOf(msg.sender);
+
+        // Track who has voted to the mapping
+        votes[msg.sender][_id] = true;
+
+        // Emit vote event
+        emit Vote(_id, msg.sender);
     }
 }
