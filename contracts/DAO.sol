@@ -31,7 +31,9 @@ contract DAO {
     );
 
     event Vote(uint256 id, address investor);
+    event Finalize(uint256 id);
 
+    // Quorum should be min token qty held by investors to form the quorum
     constructor(Token _token, uint256 _quorum) {
         owner = msg.sender;
         token = _token;
@@ -68,7 +70,7 @@ contract DAO {
         emit Propose(proposalCount, _amount, _recipient, msg.sender);
     }
 
-    // Cast a vote if you hold a token
+    // Cast a vote for the proposal if you hold a token
     // Each vote is an affirmation while a non-vote is a negation
     function vote(uint256 _id) external onlyInvestor {
         // Fetch the proposal from mapping
@@ -85,5 +87,30 @@ contract DAO {
 
         // Emit vote event
         emit Vote(_id, msg.sender);
+    }
+
+    // Finalize proposal and transfer funds
+    function finalizeProposal(uint256 _id) external onlyInvestor {
+        // Fetch the proposal from mapping
+        Proposal storage proposal = proposals[_id];
+
+        // Proposal cannot already be finalized
+        require(!proposal.finalized, "proposal already finalized");
+
+        // Mark the proposal finalized
+        proposal.finalized = true;
+
+        // Check proposal votes equals a quorum
+        require(proposal.votes >= quorum, "must reach quorum for finalization");
+
+        // Contract balance must have enough funds
+        require(address(this).balance >= proposal.amount);
+
+        // Transfer funds
+        (bool sent, ) = proposal.recipient.call{value: proposal.amount}("");
+        require(sent);
+
+        // Emit event
+        emit Finalize(_id);
     }
 }

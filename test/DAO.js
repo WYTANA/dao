@@ -1,4 +1,3 @@
-const { messagePrefix } = require("@ethersproject/hash")
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
@@ -174,6 +173,92 @@ describe("DAO", () => {
         await transaction.wait()
 
         await expect(dao.connect(investor1).vote(1)).to.be.reverted
+      })
+    })
+  })
+
+  describe("Governance", () => {
+    let transaction, result
+
+    describe("Successfully", () => {
+      beforeEach(async () => {
+        // Create proposal
+        transaction = await dao
+          .connect(investor1)
+          .createProposal("Proposal 1", ether(100), recipient.address)
+        result = await transaction.wait()
+
+        // Create quorum of voters
+        transaction = await dao.connect(investor1).vote(1)
+        result = await transaction.wait()
+
+        transaction = await dao.connect(investor2).vote(1)
+        result = await transaction.wait()
+
+        transaction = await dao.connect(investor3).vote(1)
+        result = await transaction.wait()
+
+        // Finalize the proposal
+        transaction = await dao.connect(investor1).finalizeProposal(1)
+        result = await transaction.wait()
+      })
+
+      it("transfers funds to recipient", async () => {
+        expect(await ethers.provider.getBalance(recipient.address)).to.equal(
+          tokens(10100)
+        )
+      })
+
+      it("finalizes the proposal", async () => {
+        const proposal = await dao.proposals(1)
+        expect(proposal.finalized).to.equal(true)
+      })
+
+      it("emits a finalize event", async () => {
+        await expect(transaction).to.emit(dao, "Finalize").withArgs(1)
+      })
+    })
+
+    describe("Fails", () => {
+      beforeEach(async () => {
+        // Create proposal
+        transaction = await dao
+          .connect(investor1)
+          .createProposal("Proposal 1", ether(100), recipient.address)
+        result = await transaction.wait()
+
+        // Create quorum of voters
+        transaction = await dao.connect(investor1).vote(1)
+        result = await transaction.wait()
+
+        transaction = await dao.connect(investor2).vote(1)
+        result = await transaction.wait()
+      })
+
+      it("by rejecting finalization for an incomplete quorum", async () => {
+        await expect(dao.connect(investor1).finalizeProposal(1)).to.be.reverted
+      })
+
+      it("by rejecting finalization from a non-investor", async () => {
+        // Investor3 votes
+        transaction = await dao.connect(investor3).vote(1)
+        result = await transaction.wait()
+
+        // Non-investor tries to finalize
+        await expect(dao.connect(user).finalizeProposal(1)).to.be.reverted
+      })
+
+      it("by rejecting an already finalized proposal", async () => {
+        // Investor3 votes
+        transaction = await dao.connect(investor3).vote(1)
+        result = await transaction.wait()
+
+        // Finalize the proposal
+        transaction = await dao.connect(investor1).finalizeProposal(1)
+        result = await transaction.wait()
+
+        // Finalize again
+        await expect(dao.connect(investor1).finalizeProposal(1)).to.be.reverted
       })
     })
   })
