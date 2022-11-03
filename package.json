@@ -17,7 +17,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy/localhost": "hardhat run scripts/deploy.js --network localhost",
+    "deploy/goerli": "hardhat run scripts/deploy.js --network localhost",
+    "seed/localhost": "hardhat run scripts/seed.js --network localhost"
   },
   "author": "tlorback@gmail.com",
   "license": "ISC",

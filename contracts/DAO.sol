@@ -95,13 +95,13 @@ contract DAO {
         Proposal storage proposal = proposals[_id];
 
         // Proposal cannot already be finalized
-        require(!proposal.finalized, "proposal already finalized");
+        require(!proposal.finalized, "Proposal already finalized");
 
         // Mark the proposal finalized
         proposal.finalized = true;
 
         // Check proposal votes equals a quorum
-        require(proposal.votes >= quorum, "must reach quorum for finalization");
+        require(proposal.votes >= quorum, "Must reach quorum for finalization");
 
         // Contract balance must have enough funds
         require(address(this).balance >= proposal.amount);
