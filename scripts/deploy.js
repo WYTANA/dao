@@ -4,7 +4,6 @@ async function main() {
   const NAME = "Dapp University"
   const SYMBOL = "DAPP"
   const MAX_SUPPLY = "1000000"
-  const QUORUM = "500000000000000000000001"
 
   // Deploy Token
   const Token = await hre.ethers.getContractFactory("Token")
@@ -15,7 +14,7 @@ async function main() {
 
   // Deploy DAO
   const DAO = await hre.ethers.getContractFactory("DAO")
-  const dao = await DAO.deploy(token.address, QUORUM)
+  const dao = await DAO.deploy(token.address, "500000000000000000000001")
 
   await dao.deployed()
   console.log(`DAO deployed to: ${dao.address}\n`)
