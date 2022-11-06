@@ -62,16 +62,15 @@ const Proposals = ({ provider, dao, proposals, quorum, setIsLoading }) => {
               )}
             </td>
             <td>
-              {proposal.votes >= "500000000000000000000001" &&
-                !proposal.finalized && (
-                  <Button
-                    variant="primary"
-                    style={{ width: "100%" }}
-                    onClick={() => finalizeHandler(proposal.id)}
-                  >
-                    Finalize
-                  </Button>
-                )}
+              {proposal.votes > quorum && !proposal.finalized && (
+                <Button
+                  variant="primary"
+                  style={{ width: "100%" }}
+                  onClick={() => finalizeHandler(proposal.id)}
+                >
+                  Finalize
+                </Button>
+              )}
             </td>
           </tr>
         ))}
