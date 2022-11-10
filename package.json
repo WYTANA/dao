@@ -18,9 +18,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "deploy/localhost": "hardhat run scripts/deploy.js --network localhost",
+    "deploy/local": "hardhat run scripts/deploy.js --network localhost",
     "deploy/goerli": "hardhat run scripts/deploy.js --network goerli",
-    "seed/localhost": "hardhat run scripts/seed.js --network localhost",
+    "seed/local": "hardhat run scripts/seed.js --network localhost",
     "seed/goerli": "hardhat run scripts/seed.js --network goerli"
   },
   "author": "tlorback@gmail.com",

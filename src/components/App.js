@@ -31,9 +31,11 @@ function App() {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     setProvider(provider)
 
+    const { chainId } = await provider.getNetwork()
+
     // Initiate contracts
     const dao = new ethers.Contract(
-      config[31337].dao.address,
+      config[chainId].dao.address,
       DAO_ABI,
       provider
     )
